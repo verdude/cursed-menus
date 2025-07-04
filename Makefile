@@ -19,21 +19,21 @@ $(CACHE_MUSL)/lib/libncursesw.a: $(NCURSES_TAR)
 	mkdir -p $(CACHE_BUILD) $(CACHE_MUSL)
 	test -d $(NCURSES_DIR) || tar -C $(CACHE_BUILD) -xf $(NCURSES_TAR)
 	cd $(NCURSES_DIR) && \
-       CC="zig cc -target x86_64-linux-musl" \
-       CXX="zig c++ -target x86_64-linux-musl" \
-       ./configure \
-	--prefix=$(CACHE_MUSL) \
-	--with-shared=no \
-	--enable-widec \
-	--with-normal \
-	--with-termlib \
-	--without-debug \
-       --without-cxx-binding \
-       --enable-pc-files \
-	--with-pkg-config-libdir=$(CACHE_MUSL)/lib/pkgconfig
-	$(MAKE) -C $(NCURSES_DIR) -j$(nproc)
-       $(MAKE) -C $(NCURSES_DIR) install
-       ln -sf $(CACHE_MUSL)/lib/libtinfow.a $(CACHE_MUSL)/lib/libtinfo.a
+	CC="zig cc -target x86_64-linux-musl" \
+	CXX="zig c++ -target x86_64-linux-musl" \
+	./configure \
+		--prefix=$(CACHE_MUSL) \
+		--with-shared=no \
+		--enable-widec \
+		--with-normal \
+		--with-termlib \
+		--without-debug \
+	--without-cxx-binding \
+	--enable-pc-files \
+		--with-pkg-config-libdir=$(CACHE_MUSL)/lib/pkgconfig
+		$(MAKE) -C $(NCURSES_DIR) -j$(nproc)
+	$(MAKE) -C $(NCURSES_DIR) install
+	ln -sf $(CACHE_MUSL)/lib/libtinfow.a $(CACHE_MUSL)/lib/libtinfo.a
 
 $(NCURSES_TAR):
 	mkdir -p $(CACHE_BUILD)
