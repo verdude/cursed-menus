@@ -18,12 +18,9 @@ pub fn build(b: *std.Build) void {
         .strip = true, // <- replaces -s
     });
 
-    exe.linkSystemLibrary("ncurses");
-    exe.linkSystemLibrary("tinfo"); // terminfo .a
-
     exe.addLibraryPath(.{ .cwd_relative = "temp/musl/lib" });
     exe.linkSystemLibrary("ncursesw");
-    exe.linkSystemLibrary("tinfo");
+    exe.linkSystemLibrary("tinfow"); // wide-character terminfo
 
     b.installArtifact(exe);
 }
