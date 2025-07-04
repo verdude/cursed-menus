@@ -21,7 +21,7 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("ncurses");
     exe.linkSystemLibrary("tinfo"); // terminfo .a
 
-    exe.addLibraryPath("/opt/musl/lib");
+    exe.addLibraryPath(.{ .cwd_relative = "temp/musl/lib" });
     exe.linkSystemLibrary("ncursesw");
     exe.linkSystemLibrary("tinfo");
 
