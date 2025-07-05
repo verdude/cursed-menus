@@ -1,10 +1,19 @@
-//! By convention, main.zig is where your main function lives in the case that
-//! you are building an executable. If you are making a library, the convention
-//! is to delete this file and start with root.zig instead.
+//const SimpleReader = @import("read_file.zig");
+const std = @import("std");
+const lib = @import("cursed_menus_lib");
+
+fn readStringFromStdin(buffer: []u8) ![]u8 {
+    const stdin = std.io.getStdIn().reader();
+    const read_bytes = try stdin.readUntilDelimiterOrEof(buffer, 0);
+    return buffer[0..read_bytes.?.len];
+}
 
 pub fn main() !void {
+    var buf: [1024]u8 = undefined;
+    const input = try readStringFromStdin(&buf);
+    //const reader = try SimpleReader.loadStdIn(&buf);
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    std.debug.print("All your {s} are belong to us.\n", .{input});
 
     // stdout is for the actual output of your application, for example if you
     // are implementing gzip, then only the compressed bytes should be sent to
@@ -39,8 +48,3 @@ test "fuzz example" {
     };
     try std.testing.fuzz(Context{}, Context.testOne, .{});
 }
-
-const std = @import("std");
-
-/// This imports the separate module containing `root.zig`. Take a look in `build.zig` for details.
-const lib = @import("cursed_menus_lib");
