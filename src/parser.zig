@@ -1,50 +1,22 @@
-const std = @import("std");
 const List = @import("components/list.zig");
-const json = std.json;
-
-const testing = std.testing;
-
-pub const Component = struct { id: u16 };
+const String = @import("components/string.zig");
+const comps = @import("components.zig");
+const Tokenizer = @import("parser/tokenizer.zig");
+const logger = @import("log.zig").liblog;
 
 pub const ParseError = error{
     MissingField,
     InvalidType,
+    SyntaxError,
 };
 
-fn isJsonType(value: *const json.Value) bool {
-    const obj = value.*.object;
-
-    if (obj.get("computedValueType")) |cvt| {
-        switch (cvt) {
-            .object => |cvt_obj| {
-                if (cvt_obj.get("type")) |type_val| {
-                    return switch (type_val) {
-                        .string => |s| std.mem.eql(u8, s, "json"),
-                        else => false,
-                    };
-                }
-            },
-            else => {},
-        }
-    }
-    return false;
-}
-
 pub fn fromString(alloc: std.mem.Allocator, bytes: []const u8) !List {
-    const parsed = try json.parseFromSlice(json.Value, alloc, bytes, .{});
-    defer parsed.deinit();
+    _ = alloc;
+    var tokenizer = Tokenizer.init(bytes);
+    const structure = try tokenizer.parse();
+    logger.debug("structure: {?}", .{structure});
 
-    const root = parsed.value;
-    switch (root) {
-        .object => {},
-        else => return error.InvalidJson,
-    }
-
-    if (isJsonType(&root.object)) {
-        return try List.parse(alloc, root.object);
-    } else {
-        return ParseError.InvalidType;
-    }
+    return structure;
 }
 
 test "fromString" {
@@ -52,21 +24,34 @@ test "fromString" {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    const json_text = "{\\n" ++
-        "  \"pid\": d1d,\\n" ++
-        "  \"type\": \"list\",\\n" ++
-        "  \"items\": [\\n" ++
-        "    {\\n" ++
-        "      \"id\": 2,\\n" ++
-        "      \"type\": \"li\",\\n" ++
-        "      \"content\": \"hello\"\\n" ++
-        "    }\\n" ++
-        "  ]\\n" ++
-        "}\n";
+    const json_fmt =
+        \\ {{
+        \\   "id": 1,
+        \\   "type": {},
+        \\   "items": [
+        \\     {{
+        \\       "id": 2,
+        \\       "type": {},
+        \\       "content": "hello"
+        \\     }}
+        \\   ]
+        \\ }}
+    ;
 
-    const lv = try fromString(allocator, json_text);
-    try std.testing.expectEqual(@as(u16, 1), lv.id);
-    try std.testing.expectEqual(@as(usize, 1), lv.items.len);
-    try std.testing.expectEqual(@as(u16, 2), lv.items[0].id);
-    try std.testing.expect(std.mem.eql(u8, "hello", lv.items[0].content));
+    var json_text: [1024]u8 = undefined;
+    const slice = try std.fmt.bufPrint(
+        &json_text,
+        json_fmt,
+        .{ comps.ComponentType.list, comps.ComponentType.string },
+    );
+
+    const comp = try fromString(allocator, slice);
+    try std.testing.expectEqual(@as(u16, 1), comp.id);
+    try std.testing.expectEqual(@as(usize, 1), comp.items.len);
+    try std.testing.expectEqual(@as(u16, 2), comp.items[0].id);
+    try std.testing.expect(std.mem.eql(u8, "hello", comp.items[0].content));
 }
+
+const testing = std.testing;
+const std = @import("std");
+const json = std.json;

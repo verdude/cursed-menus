@@ -26,8 +26,6 @@ pub fn build(b: *std.Build) void {
         .root_module = lib_mod,
     });
 
-    exe_mod.addImport("cursed_menus_lib", lib_mod);
-
     const exe = b.addExecutable(.{
         .name = "demo",
         .root_module = exe_mod,
