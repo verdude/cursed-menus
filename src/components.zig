@@ -19,7 +19,15 @@ pub const Component = union(ComponentType) {
 };
 
 pub fn getComponent(val: []const u8) ?Component {
-    return std.meta.stringToEnum(Component, val);
+    const t = std.meta.stringToEnum(ComponentType, val);
+    if (t == null) {
+        return null;
+    }
+    return switch (t.?) {
+        ComponentType.list => .{ .list = .{ .id = 0, .items = undefined } },
+        ComponentType.string => .{ .string = .{ .id = 0, .content = undefined } },
+        else => null,
+    };
 }
 
 const std = @import("std");
